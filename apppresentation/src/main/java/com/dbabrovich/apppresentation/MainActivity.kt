@@ -1,4 +1,4 @@
-package com.dbabrovich.sampleapplication
+package com.dbabrovich.apppresentation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

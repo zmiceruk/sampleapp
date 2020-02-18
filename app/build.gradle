@@ -39,6 +39,7 @@ dependencies {
     implementation project(":appusercases")
     implementation project(":appokhttp")
     implementation project(":apppresentation")
+    implementation project(":appresources")
 
     // Koin for Kotlin
     implementation "org.koin:koin-core:${versions.koin}"

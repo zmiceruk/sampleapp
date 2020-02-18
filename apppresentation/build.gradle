@@ -48,6 +48,7 @@ dependencies {
     implementation project(":domain")
 
     implementation project(":appusercases")
+    implementation project(":appresources")
 
     // Material library that also imports androidx core modules, recycler view etc.
     implementation deps.google.android.material
