@@ -35,7 +35,8 @@ buildscript {
 
             //AndroidX and UI related libraries
             androidXAppCompat: '1.1.0',
-            androidXAnnotations: '1.1.0'
+            androidXAnnotations: '1.1.0',
+            androidXMaterial   : '1.1.0-beta01'
     ]
 
     ext.deps = [
@@ -52,6 +53,9 @@ buildscript {
                     constraintLayout: "androidx.constraintlayout:constraintlayout:${versions.constraintLayout}",
             ],
             google     : [
+                    android    : [
+                            material: "com.google.android.material:material:${versions.androidXMaterial}",
+                    ],
                     gson       : "com.google.code.gson:gson:${versions.gson}",
             ],
 

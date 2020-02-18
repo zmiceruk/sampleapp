@@ -1,19 +1,20 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
 
     defaultConfig {
-        applicationId "com.dbabrovich.sampleapplication"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.compileSdk
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
@@ -22,23 +23,33 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    dataBinding {
+        enabled = true
+    }
 
+    androidExtensions {
+        experimental = true
+    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     // Kotlin
     implementation deps.kotlin.stdLibJdk
 
-    implementation deps.androidX.appCompat
+    // Rx extensions
+    implementation deps.rx.android
+    implementation deps.rx.kotlin
 
+    //Add dependency that specifies our application domain interfaces and data classes
     implementation project(":domain")
-    implementation project(":appusercases")
-    implementation project(":appokhttp")
-    implementation project(":apppresentation")
 
-    // Koin for Kotlin
-    implementation "org.koin:koin-core:${versions.koin}"
-    // Koin for Android
-    implementation "org.koin:koin-android:${versions.koin}"
+    implementation project(":appusercases")
+
+    // Material library that also imports androidx core modules, recycler view etc.
+    implementation deps.google.android.material
+    implementation deps.androidX.constraintLayout
 }
