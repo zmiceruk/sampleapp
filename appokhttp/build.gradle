@@ -1,0 +1,68 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.compileSdk
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    // Kotlin
+    implementation deps.kotlin.stdLibJdk
+
+    // Rx extensions
+    implementation deps.rx.android
+    implementation deps.rx.kotlin
+
+    //Add dependency that specifies our application domain interfaces and data classes
+    implementation project(":domain")
+
+    //Square OkHttp library
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: "${versions.okHttp}"
+
+    //GSON
+    implementation deps.google.gson
+
+    // Retrofit
+    implementation "com.squareup.retrofit2:retrofit:${versions.retrofit}"
+    implementation(group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "${versions.retrofit}") {
+        exclude module: 'okhttp'
+        exclude module: 'rxjava'
+    }
+    implementation "com.squareup.retrofit2:converter-gson:${versions.retrofit}"
+    implementation "com.squareup.retrofit2:converter-scalars:${versions.retrofit}"
+
+    //Immutables library for managing boilerplate code (https://immutables.github.io/)
+    kapt "org.immutables:value:${versions.immutables}"
+    annotationProcessor "org.immutables:value:${versions.immutables}"
+
+    // For annotation processor
+    compileOnly "org.immutables:value:${versions.immutables}"
+
+    // For annotations
+    compileOnly "org.immutables:builder:${versions.immutables}"
+
+    // For annotations
+    compileOnly "org.immutables:gson:${versions.immutables}"
+
+}

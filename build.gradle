@@ -50,7 +50,11 @@ buildscript {
                     annotations     : "androidx.annotation:annotation:${versions.androidXAnnotations}",
                     appCompat       : "androidx.appcompat:appcompat:${versions.androidXAppCompat}",
                     constraintLayout: "androidx.constraintlayout:constraintlayout:${versions.constraintLayout}",
-            ]
+            ],
+            google     : [
+                    gson       : "com.google.code.gson:gson:${versions.gson}",
+            ],
+
     ]
 
     repositories {
