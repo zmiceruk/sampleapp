@@ -1,3 +1,4 @@
 rootProject.name='SampleApplication'
 include ':app'
 include ':domain'
+include ':appusercases'
