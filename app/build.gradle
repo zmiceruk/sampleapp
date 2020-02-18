@@ -41,4 +41,7 @@ dependencies {
     implementation "org.koin:koin-core:${versions.koin}"
     // Koin for Android
     implementation "org.koin:koin-android:${versions.koin}"
+
+    //Square OkHttp library
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: "${versions.okHttp}"
 }
