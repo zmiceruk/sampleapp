@@ -36,7 +36,10 @@ buildscript {
             //AndroidX and UI related libraries
             androidXAppCompat: '1.1.0',
             androidXAnnotations: '1.1.0',
-            androidXMaterial   : '1.1.0-beta01'
+            androidXMaterial   : '1.1.0-beta01',
+
+            //Port or LocalDate/Time to Android
+            threetenaBp        : '1.2.1',
     ]
 
     ext.deps = [
@@ -58,7 +61,7 @@ buildscript {
                     ],
                     gson       : "com.google.code.gson:gson:${versions.gson}",
             ],
-
+            threetenaBp: "com.jakewharton.threetenabp:threetenabp:${versions.threetenaBp}"
     ]
 
     repositories {

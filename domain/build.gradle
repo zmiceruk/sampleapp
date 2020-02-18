@@ -32,4 +32,7 @@ dependencies {
     // Rx extensions
     implementation deps.rx.android
     implementation deps.rx.kotlin
+
+    //Backport of LocalDate/Time
+    implementation deps.threetenaBp
 }

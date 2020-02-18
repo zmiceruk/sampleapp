@@ -30,6 +30,9 @@ dependencies {
     // Kotlin
     implementation deps.kotlin.stdLibJdk
 
+    //Backport of LocalDate/Time
+    implementation deps.threetenaBp
+
     implementation deps.androidX.appCompat
 
     implementation project(":domain")

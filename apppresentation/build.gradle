@@ -52,4 +52,7 @@ dependencies {
     // Material library that also imports androidx core modules, recycler view etc.
     implementation deps.google.android.material
     implementation deps.androidX.constraintLayout
+
+    //Backport of LocalDate/Time
+    implementation deps.threetenaBp
 }
