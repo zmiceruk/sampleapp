@@ -1,4 +1,4 @@
-package com.dbabrovich.basic
+package com.dbabrovich.domain
 
 import org.threeten.bp.LocalDateTime
 

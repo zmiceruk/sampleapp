@@ -1,9 +1,9 @@
 package com.dbabrovich.appokhttp.remote.okhttp3
 
-import com.dbabrovich.basic.Comment
-import com.dbabrovich.basic.CommentaryFeed
-import com.dbabrovich.basic.Match
-import com.dbabrovich.basic.remote.MobileRemote
+import com.dbabrovich.domain.Comment
+import com.dbabrovich.domain.CommentaryFeed
+import com.dbabrovich.domain.Match
+import com.dbabrovich.domain.remote.MobileRemote
 import io.reactivex.Single
 import org.threeten.bp.DateTimeUtils
 import org.threeten.bp.LocalDateTime

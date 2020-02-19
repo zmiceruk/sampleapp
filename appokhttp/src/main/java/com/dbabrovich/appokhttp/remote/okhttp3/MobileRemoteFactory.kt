@@ -1,6 +1,6 @@
 package com.dbabrovich.appokhttp.remote.okhttp3
 
-import com.dbabrovich.basic.remote.MobileRemote
+import com.dbabrovich.domain.remote.MobileRemote
 import com.google.gson.GsonBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

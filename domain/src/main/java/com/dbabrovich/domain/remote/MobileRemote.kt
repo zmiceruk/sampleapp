@@ -1,6 +1,6 @@
-package com.dbabrovich.basic.remote
+package com.dbabrovich.domain.remote
 
-import com.dbabrovich.basic.CommentaryFeed
+import com.dbabrovich.domain.CommentaryFeed
 import io.reactivex.Single
 
 /**
