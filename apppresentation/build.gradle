@@ -56,4 +56,11 @@ dependencies {
 
     //Backport of LocalDate/Time
     implementation deps.threetenaBp
+
+    // MVP for activity and fragment
+    implementation "net.grandcentrix.thirtyinch:thirtyinch:${versions.thirtyInch}"
+    // Koin for Kotlin
+    implementation "org.koin:koin-core:${versions.koin}"
+    // Koin for Android
+    implementation "org.koin:koin-android:${versions.koin}"
 }
