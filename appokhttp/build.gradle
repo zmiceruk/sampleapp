@@ -34,6 +34,12 @@ dependencies {
     implementation deps.rx.android
     implementation deps.rx.kotlin
 
+    //Get androidX annotations
+    implementation deps.androidX.annotations
+
+    //Backport of LocalDate/Time
+    implementation deps.threetenaBp
+
     //Add dependency that specifies our application domain interfaces and data classes
     implementation project(":domain")
 
