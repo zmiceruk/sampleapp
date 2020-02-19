@@ -2,5 +2,6 @@
     <string name="app_name">SampleApplication</string>
 
     <string name="server_name">"https://feeds.incrowdsports.com/" translatable="false" </string>
+    <string name="cd_commentary_feed">Commentary feed</string>
 
 </resources>

@@ -9,8 +9,7 @@ class CommentaryInteractor(
     private val mobileRemote: MobileRemote
 ) : CommentaryUseCases {
 
-    override fun getCommentary(): Single<CommentaryFeed> {
-        //Just request from remote - we don't store anything locally
-        return mobileRemote.getCommentary()
-    }
+    //Just request from remote - we don't store anything locally
+    override fun getCommentary(): Single<CommentaryFeed> =
+        mobileRemote.getCommentary()
 }

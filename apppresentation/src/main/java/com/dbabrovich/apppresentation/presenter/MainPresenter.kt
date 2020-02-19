@@ -1,5 +1,6 @@
 package com.dbabrovich.apppresentation.presenter
 
+import com.dbabrovich.domain.CommentaryFeed
 import net.grandcentrix.thirtyinch.TiPresenter
 import net.grandcentrix.thirtyinch.TiView
 
@@ -12,6 +13,11 @@ sealed class MainActions {
  */
 sealed class MainViewState {
     object Unspecified : MainViewState()
+
+    /**
+     * View state for displaying commentary feed.
+     */
+    data class CommentaryViewState(val commentaryFeed: CommentaryFeed) : MainViewState()
 }
 
 interface MainView : TiView {
