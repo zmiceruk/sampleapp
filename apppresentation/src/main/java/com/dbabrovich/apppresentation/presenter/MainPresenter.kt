@@ -17,7 +17,11 @@ sealed class MainViewState {
     /**
      * View state for displaying commentary feed.
      */
-    data class CommentaryViewState(val commentaryFeed: CommentaryFeed) : MainViewState()
+    data class CommentaryViewState(
+        val commentaryFeed: CommentaryFeed,
+        val errorMessage: CharSequence,
+        val isLoading: Boolean
+    ) : MainViewState()
 }
 
 interface MainView : TiView {

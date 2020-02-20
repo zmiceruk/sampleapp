@@ -33,3 +33,8 @@ data class CommentaryFeed(
     val comments: Collection<Comment>,
     val createdAt: LocalDateTime
 )
+
+object Unspecified {
+    val MATCH = Match("", -1, "", "", -1, "", "", -1, -1, "")
+    val COMMENTARY_FEED = CommentaryFeed(MATCH, emptyList(), LocalDateTime.MIN)
+}

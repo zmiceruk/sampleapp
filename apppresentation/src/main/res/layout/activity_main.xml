@@ -12,7 +12,7 @@
             android:id="@+id/bottomBarView"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_bar_height"
-            android:background="@color/charcoal_grey"
+            android:background="@color/colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -24,8 +24,8 @@
             android:background="?attr/selectableItemBackground"
             android:contentDescription="@string/cd_commentary_feed"
             android:padding="12dp"
-            android:tint="@android:color/white"
             android:scaleType="fitCenter"
+            android:tint="@android:color/white"
             app:layout_constraintBottom_toBottomOf="@+id/bottomBarView"
             app:layout_constraintEnd_toStartOf="@+id/matchesBtn"
             app:layout_constraintStart_toStartOf="@+id/bottomBarView"
@@ -42,21 +42,27 @@
             android:scaleType="fitCenter"
             android:tint="@android:color/white"
             app:layout_constraintBottom_toBottomOf="@+id/bottomBarView"
-            app:layout_constraintStart_toEndOf="@+id/commentsFeedBtn"
             app:layout_constraintEnd_toEndOf="@+id/bottomBarView"
+            app:layout_constraintStart_toEndOf="@+id/commentsFeedBtn"
             app:layout_constraintTop_toTopOf="@+id/bottomBarView"
             app:srcCompat="@drawable/ic_assistant_photo_black_24dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refresh"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:clipToPadding="false"
-            android:padding="8dp"
             app:layout_constraintBottom_toTopOf="@+id/bottomBarView"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

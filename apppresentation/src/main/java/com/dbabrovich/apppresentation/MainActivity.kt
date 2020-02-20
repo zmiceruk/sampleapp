@@ -1,6 +1,7 @@
 package com.dbabrovich.apppresentation
 
 import android.os.Bundle
+import android.util.Log
 import android.util.SparseArray
 import android.view.LayoutInflater
 import com.dbabrovich.apppresentation.databinding.ActivityMainBinding
@@ -11,10 +12,14 @@ import com.dbabrovich.apppresentation.presenter.MainViewState
 import com.dbabrovich.apppresentation.recyclerview.CellCommentary
 import com.dbabrovich.apppresentation.recyclerview.RecyclerDiffCallback
 import com.dbabrovich.apppresentation.recyclerview.RecyclerViewBase
+import com.dbabrovich.domain.CommentaryFeed
 import com.dbabrovich.domain.CommentaryUseCases
+import com.dbabrovich.domain.Unspecified
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import net.grandcentrix.thirtyinch.TiActivity
@@ -67,13 +72,33 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
     }
 
     override fun render(viewState: MainViewState) {
-        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        when (viewState) {
+            is MainViewState.CommentaryViewState -> {
+                //Update loading state
+                viewBinding.refresh.isRefreshing = viewState.isLoading
+
+
+            }
+        }
     }
 }
 
 class AndroidMainPresenter(
     private val commentsInteractor: CommentaryUseCases
 ) : MainPresenter() {
+    companion object {
+        private const val TAG = "AndroidMainPresenter"
+    }
+
+    private sealed class Changes {
+        //At the moment used to kick start view creation
+        object InitialLoad : Changes()
+
+        data class Commentary(
+            val commentaryFeed: CommentaryFeed,
+            val error: Throwable? = null
+        ) : Changes()
+    }
 
     //For queueing action commands
     private val actions = PublishSubject.create<MainActions>()
@@ -83,6 +108,9 @@ class AndroidMainPresenter(
 
     //Used to cleanup subscriptions when view becomes inactive
     private val viewVisibleDisposables = CompositeDisposable()
+
+    //Used to clean up pending subscriptions/disposables
+    private val disposables = CompositeDisposable()
 
     override fun dispatchAction(action: MainActions) {
         actions.onNext(action)
@@ -102,4 +130,83 @@ class AndroidMainPresenter(
         viewVisibleDisposables.clear()
         super.onDetachView()
     }
+
+    override fun onDestroy() {
+        disposables.clear()
+        super.onDestroy()
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        //Start loading data
+        val onInitialLoad = commentsInteractor.getCommentary()
+            .map<Changes> {
+                //Map tp change
+                Changes.Commentary(it)
+            }
+            .onErrorReturn {
+                //On error return unspecified commentary feed
+                Changes.Commentary(Unspecified.COMMENTARY_FEED)
+            }
+            .toObservable()
+            .subscribeOn(Schedulers.io())
+            .startWith(Changes.InitialLoad)
+
+        //Reference to the current view state
+        var currentViewState: MainViewState = MainViewState.Unspecified
+        disposables += Observable.merge<Changes>(
+            listOf(
+                onInitialLoad
+            )
+        ).observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ change ->
+                val newState = reduce(change, currentViewState)
+                if (newState != currentViewState) {
+                    viewStateSubject.onNext(newState)
+                    currentViewState = newState
+                }
+            }, { error ->
+                Log.e(TAG, "This must not happen.", error)
+            })
+    }
+
+    /**
+     * The function takes change, current view state and generates new view state (or leaves the old one)
+     */
+    private fun reduce(change: Changes, currentViewState: MainViewState): MainViewState =
+        when (change) {
+            Changes.InitialLoad -> {
+                //This the initial loading stage - just show a spinner
+                when (currentViewState) {
+                    is MainViewState.CommentaryViewState -> {
+                        currentViewState.copy(isLoading = true)
+                    }
+                    else -> {
+                        MainViewState.CommentaryViewState(Unspecified.COMMENTARY_FEED, "", true)
+                    }
+                }
+            }
+            is Changes.Commentary -> {
+                //We have commentary changes
+                when (currentViewState) {
+                    is MainViewState.CommentaryViewState -> {
+                        //Update the view state
+                        currentViewState.copy(
+                            commentaryFeed = change.commentaryFeed,
+                            errorMessage = change.error?.message ?: "",
+                            isLoading = false
+                        )
+                    }
+                    else -> {
+                        //Leave as is
+                        currentViewState
+                    }
+                }
+            }
+            else -> {
+                //Looks like we don't support this change yet - return old view state
+                currentViewState
+            }
+        }
 }
