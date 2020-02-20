@@ -18,6 +18,7 @@ import com.dbabrovich.domain.Unspecified
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.ofType
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
@@ -69,6 +70,11 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(viewBinding.root)
+
+        //Hook up refresh action
+        viewBinding.refresh.setOnRefreshListener {
+            presenter.dispatchAction(MainActions.Refresh)
+        }
     }
 
     override fun render(viewState: MainViewState) {
@@ -92,7 +98,7 @@ class AndroidMainPresenter(
 
     private sealed class Changes {
         //At the moment used to kick start view creation
-        object InitialLoad : Changes()
+        object Loading : Changes()
 
         data class Commentary(
             val commentaryFeed: CommentaryFeed,
@@ -139,25 +145,43 @@ class AndroidMainPresenter(
     override fun onCreate() {
         super.onCreate()
 
+        //Reference to the current view state
+        var currentViewState: MainViewState = MainViewState.Unspecified
+
         //Start loading data
         val onInitialLoad = commentsInteractor.getCommentary()
             .map<Changes> {
-                //Map tp change
+                //Map to change
                 Changes.Commentary(it)
             }
             .onErrorReturn {
                 //On error return unspecified commentary feed
-                Changes.Commentary(Unspecified.COMMENTARY_FEED)
+                Changes.Commentary(Unspecified.COMMENTARY_FEED, error = it)
             }
             .toObservable()
             .subscribeOn(Schedulers.io())
-            .startWith(Changes.InitialLoad)
+            .startWith(Changes.Loading)
 
-        //Reference to the current view state
-        var currentViewState: MainViewState = MainViewState.Unspecified
+        //Hook up refreshing action
+        val onRefreshAction = actions.ofType<MainActions.Refresh>()
+            .flatMap {
+                commentsInteractor.getCommentary()
+                    .map<Changes> {
+                        //Map to change
+                        Changes.Commentary(it)
+                    }
+                    .onErrorReturn {
+                        //On error return unspecified commentary feed
+                        Changes.Commentary(Unspecified.COMMENTARY_FEED, error = it)
+                    }
+                    .toObservable()
+                    .subscribeOn(Schedulers.io())
+                    .startWith(Changes.Loading)
+            }
+
         disposables += Observable.merge<Changes>(
             listOf(
-                onInitialLoad
+                onInitialLoad, onRefreshAction
             )
         ).observeOn(AndroidSchedulers.mainThread())
             .subscribe({ change ->
@@ -176,11 +200,11 @@ class AndroidMainPresenter(
      */
     private fun reduce(change: Changes, currentViewState: MainViewState): MainViewState =
         when (change) {
-            Changes.InitialLoad -> {
+            Changes.Loading -> {
                 //This the initial loading stage - just show a spinner
                 when (currentViewState) {
                     is MainViewState.CommentaryViewState -> {
-                        currentViewState.copy(isLoading = true)
+                        currentViewState.copy(isLoading = true, errorMessage = "")
                     }
                     else -> {
                         MainViewState.CommentaryViewState(Unspecified.COMMENTARY_FEED, "", true)
@@ -192,9 +216,14 @@ class AndroidMainPresenter(
                 when (currentViewState) {
                     is MainViewState.CommentaryViewState -> {
                         //Update the view state
-                        currentViewState.copy(
+                        change.error?.let {
+                            currentViewState.copy(
+                                errorMessage = it.message ?: "",
+                                isLoading = false
+                            )
+                        } ?: currentViewState.copy(
                             commentaryFeed = change.commentaryFeed,
-                            errorMessage = change.error?.message ?: "",
+                            errorMessage = "",
                             isLoading = false
                         )
                     }

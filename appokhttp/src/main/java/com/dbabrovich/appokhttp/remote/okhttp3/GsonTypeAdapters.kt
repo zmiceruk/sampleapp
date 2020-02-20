@@ -9,7 +9,7 @@ import java.util.*
 class GsonTypeAdapters {
     class GsonDateAdapter : TypeAdapter<Date?>() {
         private fun getDateFormat(): DateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).also {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).also {
                 it.timeZone = TimeZone.getTimeZone("UTC")
             }
 

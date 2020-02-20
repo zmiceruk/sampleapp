@@ -5,7 +5,7 @@ import net.grandcentrix.thirtyinch.TiPresenter
 import net.grandcentrix.thirtyinch.TiView
 
 sealed class MainActions {
-
+    object Refresh : MainActions()
 }
 
 /**
