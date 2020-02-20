@@ -20,7 +20,9 @@ import com.dbabrovich.domain.CommentaryFeed
 import com.dbabrovich.domain.CommentaryUseCases
 import com.dbabrovich.domain.DisposableWrapper
 import com.dbabrovich.domain.Unspecified
+import com.google.android.material.snackbar.Snackbar
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.ofType
@@ -73,6 +75,7 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
     // Used for cleaning up resources after diff operation on computation scheduler
     private val viewCompositeDisposable = CompositeDisposable()
     private val diffSubscription = DisposableWrapper(viewCompositeDisposable)
+    private val errorDisposable = DisposableWrapper(viewCompositeDisposable)
 
     private lateinit var viewBinding: ActivityMainBinding
 
@@ -102,6 +105,7 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
         }
     }
 
+
     override fun render(viewState: MainViewState) {
         when (viewState) {
             is MainViewState.CommentaryViewState -> {
@@ -116,6 +120,18 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
                         period = comment.period,
                         time = comment.time
                     )
+                }
+
+                //Check if error message should be shown
+                if (viewState.errorMessage.isNotBlank()) {
+                    Snackbar.make(viewBinding.root, viewState.errorMessage, 500).show()
+                    errorDisposable.disposable = Single.timer(500, TimeUnit.MILLISECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            presenter.dispatchAction(MainActions.ErrorRead)
+                        }, {
+                            //Not used
+                        })
                 }
 
                 //Call diff calculation on a separate thread - previous subscription is cancelled
@@ -157,6 +173,9 @@ class AndroidMainPresenter(
             val commentaryFeed: CommentaryFeed,
             val error: Throwable? = null
         ) : Changes()
+
+        //Change to specify that error message has been read
+        object ErrorRead : Changes()
     }
 
     //For queueing action commands
@@ -215,6 +234,12 @@ class AndroidMainPresenter(
             .subscribeOn(Schedulers.io())
             .startWith(Changes.Loading)
 
+        val onErrorRead = actions.ofType<MainActions.ErrorRead>()
+            .map {
+                Changes.ErrorRead
+            }
+
+
         //Hook up refreshing action
         val onRefreshAction = actions.ofType<MainActions.Refresh>()
             .flatMap {
@@ -234,7 +259,7 @@ class AndroidMainPresenter(
 
         disposables += Observable.merge<Changes>(
             listOf(
-                onInitialLoad, onRefreshAction
+                onInitialLoad, onRefreshAction, onErrorRead
             )
         ).observeOn(AndroidSchedulers.mainThread())
             .subscribe({ change ->
@@ -286,9 +311,14 @@ class AndroidMainPresenter(
                     }
                 }
             }
-            else -> {
-                //Looks like we don't support this change yet - return old view state
-                currentViewState
+            is Changes.ErrorRead -> {
+                when (currentViewState) {
+                    is MainViewState.CommentaryViewState -> {
+                        //Reset error message
+                        currentViewState.copy(errorMessage = "")
+                    }
+                    else -> currentViewState
+                }
             }
         }
 }

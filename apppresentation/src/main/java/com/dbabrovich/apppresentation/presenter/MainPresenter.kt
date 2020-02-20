@@ -6,6 +6,7 @@ import net.grandcentrix.thirtyinch.TiView
 
 sealed class MainActions {
     object Refresh : MainActions()
+    object ErrorRead : MainActions()
 }
 
 /**
