@@ -4,16 +4,21 @@ import android.os.Bundle
 import android.util.Log
 import android.util.SparseArray
 import android.view.LayoutInflater
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.dbabrovich.apppresentation.databinding.ActivityMainBinding
 import com.dbabrovich.apppresentation.presenter.MainActions
 import com.dbabrovich.apppresentation.presenter.MainPresenter
 import com.dbabrovich.apppresentation.presenter.MainView
 import com.dbabrovich.apppresentation.presenter.MainViewState
 import com.dbabrovich.apppresentation.recyclerview.CellCommentary
+import com.dbabrovich.apppresentation.recyclerview.RecycleUpdateCallback
 import com.dbabrovich.apppresentation.recyclerview.RecyclerDiffCallback
 import com.dbabrovich.apppresentation.recyclerview.RecyclerViewBase
 import com.dbabrovich.domain.CommentaryFeed
 import com.dbabrovich.domain.CommentaryUseCases
+import com.dbabrovich.domain.DisposableWrapper
 import com.dbabrovich.domain.Unspecified
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -61,10 +66,22 @@ private class DiffCallback(
 }
 
 class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
+    // Used for cleaning up resources after diff operation on computation scheduler
+    private val viewCompositeDisposable = CompositeDisposable()
+    private val diffSubscription = DisposableWrapper(viewCompositeDisposable)
 
     private lateinit var viewBinding: ActivityMainBinding
 
     override fun providePresenter(): MainPresenter = get()
+
+    override fun onStop() {
+        viewCompositeDisposable.clear()
+        super.onStop()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +92,14 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
         viewBinding.refresh.setOnRefreshListener {
             presenter.dispatchAction(MainActions.Refresh)
         }
+
+        val recyclerViewAdapter = RecyclerViewAdapter()
+        //Set up recycler view adapter
+        viewBinding.recyclerView.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+            setHasFixedSize(true)
+            adapter = recyclerViewAdapter
+        }
     }
 
     override fun render(viewState: MainViewState) {
@@ -83,7 +108,35 @@ class MainActivity : TiActivity<MainPresenter, MainView>(), MainView {
                 //Update loading state
                 viewBinding.refresh.isRefreshing = viewState.isLoading
 
+                //Populate with data
+                val adapter = viewBinding.recyclerView.adapter as? RecyclerViewAdapter ?: return
+                val newList = viewState.commentaryFeed.comments.map { comment ->
+                    CellCommentary.ViewModel(
+                        comment = comment.comment,
+                        period = comment.period,
+                        time = comment.time
+                    )
+                }
 
+                //Call diff calculation on a separate thread - previous subscription is cancelled
+                diffSubscription.disposable = Observable.fromCallable {
+                    DiffUtil.calculateDiff(DiffCallback(adapter.list, newList), true)
+                }.subscribeOn(Schedulers.computation())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ diffResult ->
+                        diffSubscription.disposable = null
+                        adapter.setData(newList)
+
+                        //Dispatch list view updates
+                        diffResult.dispatchUpdatesTo(
+                            RecycleUpdateCallback(
+                                viewBinding.recyclerView,
+                                adapter
+                            )
+                        )
+                    }, { error ->
+                        Log.e(TAG, "Failed to calculate diff", error)
+                    })
             }
         }
     }
